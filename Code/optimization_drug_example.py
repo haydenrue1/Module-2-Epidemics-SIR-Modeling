@@ -129,11 +129,11 @@ opt_dose_combined_nm, opt_effect_combined_nm = newtons_method(lambda x: metformi
 print(f"Newton's Method - Optimal Combined Dose: {opt_dose_combined_nm:.2f} mg")
 print(f"Newton's Method - Optimal Combined Effect: {opt_effect_combined_nm*100:.2f}%")
 
-#find best lambda value to achieve the optimal dose for metformin
-# 1) Target is the combined optimal dose for (from your Newton's method result)
+#Best lambda value to achieve the optimal dose for metformin
+# 1) Target is the combined optimal dose from Newton's method result
 target_dose = opt_dose_combined_nm
 
-# 2) Save original lambda so we can restore later
+# 2) Save original lambda so it can be restored later
 metformin_lambda_original = metformin_lambda
 
 # 3) Sweep candidate lambdas
@@ -178,8 +178,8 @@ met_curve_best = metformin(x)
 plt.figure(figsize=(10,6))
 plt.plot(x, combined_curve, label='Combined Effect', color='red', linestyle='--')
 plt.plot(x, met_curve_best, label=f'Metformin (best lambda = {best_lambda:.3f})', color='blue')
-plt.axvline(target_dose, linestyle=':', label=f'Target combined dose = {target_dose:.2f} mg')
-plt.axvline(best_dose, linestyle=':', label=f'Metformin opt dose = {best_dose:.2f} mg')
+plt.axvline(target_dose, linestyle=':', label=f'Target Combined Dose = {target_dose:.2f} mg')
+plt.axvline(best_dose, linestyle=':', label=f'Metformin Optimal Dose = {best_dose:.2f} mg')
 plt.title("Combined vs Metformin (at best lambda)")
 plt.xlabel("Dosage (mg)")
 plt.ylabel("Net Effect")
