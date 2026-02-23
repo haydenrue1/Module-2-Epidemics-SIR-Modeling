@@ -1,5 +1,6 @@
 # drug efficacy optimization example for BME 2315
 # made by Lavie, fall 2025
+#Chat GPT-4o was used to assist in writing code to sweep lambda values, create the for loop, and print statements to give optimal doses and best_diff
 
 #%% import libraries
 import numpy as np
@@ -129,14 +130,14 @@ opt_dose_combined_nm, opt_effect_combined_nm = newtons_method(lambda x: metformi
 print(f"Newton's Method - Optimal Combined Dose: {opt_dose_combined_nm:.2f} mg")
 print(f"Newton's Method - Optimal Combined Effect: {opt_effect_combined_nm*100:.2f}%")
 
-#Best lambda value to achieve the optimal dose for metformin
+#Best lambda value to achieve the optimal dose for lisinopril
 # 1) Target is the combined optimal dose from Newton's method result
 target_dose = opt_dose_combined_nm
 
 # 2) Save original lambda so it can be restored later
-metformin_lambda_original = metformin_lambda
+lisinopril_lambda_original = lisinopril_lambda
 
-# 3) Sweep candidate lambdas
+# 3) Sweep lambdas
 lambda_values = np.linspace(0.0, 2.0, 201)
 
 best_lambda = None
@@ -144,47 +145,57 @@ best_dose = None
 best_effect = None
 best_diff = np.inf
 
-met_opt_doses = [] # store metformin optimal dose for each lambda
+lisinopril_opt_doses = [] # store the lisinopril optimal dose for each lambda
 
 for lam in lambda_values:
-    metformin_lambda = lam # update global used by metformin ()
+    lisinopril_lambda = lam # update global
 
-    dose_m,effect_m = newtons_method(metformin, x0=1.0)
-    met_opt_doses.append(dose_m)
+    dose_l,effect_l = newtons_method(lisinopril, x0=1.0)
+    lisinopril_opt_doses.append(dose_l)
 
-    diff = abs(dose_m - target_dose)
+    diff = abs(dose_l - target_dose)
     if diff < best_diff:
         best_diff = diff
         best_lambda = lam
-        best_dose = dose_m
-        best_effect = effect_m
+        best_dose = dose_l
+        best_effect = effect_l
+
 
 # 4) Restore original lambda
-metformin_lambda = metformin_lambda_original
+lisinopril_lambda = lisinopril_lambda_original
 
 print(f"Target combined dose = {target_dose:.4f} mg")
-print(f"Best metformin lambda = {best_lambda:.4f}")
-print(f"Metformin optimal dose at best lambda = {best_dose:.4f} mg")
+print(f"Best lisinopril lambda = {best_lambda:.4f}")
+print(f"lisinopril optimal dose at best lambda = {best_dose:.4f} mg")
 print(f"Difference = {best_diff:.4f} mg")
-print(f"Metformin optimal effect at best lambda = {best_effect*100:.2f}%")
+print(f"Lisinopril optimal effect at best lambda = {best_effect*100:.2f}%")
 
 
-#Plot A: Combined curve vs Metformin curve at best lambda (both vs dose)
+#Plot A: Combined curve vs Lisinopril curve at best lambda (both vs dose)
 
-metformin_lambda = best_lambda
+lisinopril_lambda = best_lambda
 combined_curve = metformin(x) + lisinopril(x) + escitalopram(x)
-met_curve_best = metformin(x)
+lisinopril_curve_best = lisinopril(x)
 
 plt.figure(figsize=(10,6))
 plt.plot(x, combined_curve, label='Combined Effect', color='red', linestyle='--')
-plt.plot(x, met_curve_best, label=f'Metformin (best lambda = {best_lambda:.3f})', color='blue')
+plt.plot(x, lisinopril_curve_best, label=f'Lisinopril (best lambda = {best_lambda:.3f})', color='blue')
 plt.axvline(target_dose, linestyle=':', label=f'Target Combined Dose = {target_dose:.2f} mg')
-plt.axvline(best_dose, linestyle=':', label=f'Metformin Optimal Dose = {best_dose:.2f} mg')
-plt.title("Combined vs Metformin (at best lambda)")
+plt.axvline(best_dose, linestyle=':', label=f'Lisinopril Optimal Dose = {best_dose:.2f} mg')
+plt.title("Combined vs Lisinopril (at best lambda)")
 plt.xlabel("Dosage (mg)")
 plt.ylabel("Net Effect")
 plt.legend()
 plt.show()
 
 #Restore original again after plotting
-metformin_lambda = metformin_lambda_original
+lisinopril_lambda = lisinopril_lambda_original
+
+print(f"Lisinopril optimal dose at best lambda = {best_dose:.4f} mg") #prints the closest optimal dose
+print(f"Difference = {best_diff:.4f} mg") # shows how far the optimal dose is from the target(combined)
+
+# 1) We would pick Lisinopril as it has the highest optimal drug effect of 0.8573 compared to Metformin at 0.7753 and Escitalopram at 0.5960
+# 2) The optimal drug effect is 85.73%
+# 3) This occurs at a dose of 6.80 mg for Lisinopril
+# 4) Yes, as we sweep lambda we can see the value for the optimal dose changes. Lowering lambda pushes the optimal dose much higher
+# 5) The closest dose for lisinopril is 6.5002 mg, which is 1.0976 mg away from the target combined dose
