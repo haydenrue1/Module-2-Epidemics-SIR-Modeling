@@ -1,11 +1,9 @@
+#Chat GPT was used to assist the grid search for optimzing the beta, gamma, and sigma parameters to minimize sse
 
 #%%
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
-#Grid search optimum B=0.357 sigma = 0.243 gamma = 0.107
-#SSE 912.73
 
 # Load data from csv file
 df = pd.read_csv(r"C:\Users\isabe\OneDrive\Documents\BME2315\Module-2-Epidemics-SIR-Modeling\Data\mystery_virus_daily_active_counts_RELEASE#2.csv", parse_dates=['date'], header=0, index_col=None)
@@ -40,3 +38,42 @@ def run_euler(beta,sigma,gamma,total_days):
 beta_values = np.linspace(0.1,0.5,10) # Transmission rate range 0.1 to 0.5
 gamma_values = np.linspace(0.05, 0.2, 10) # Recovery rate 5 to 20 days
 sigma_values = np.linspace(0.1, 0.5, 10) # Incubation rate 2 to 10 days
+
+#Grid search to obtain optimal parameters
+optimal_sse = np.inf
+optimal_beta = None
+optimal_sigma = None
+optimal_gamma = None
+
+total_days = len(day)
+
+for beta in beta_values:
+    for sigma in sigma_values:
+        for gamma in gamma_values:
+            I_model = run_euler(beta, sigma, gamma, total_days)
+            I_model = I_model[:len(active)]
+            sse = np.sum((active - I_model) **2)
+
+            if sse < optimal_sse:
+                optimal_sse = sse
+                optimal_beta = beta
+                optimal_gamma = gamma
+                optimal_sigma = sigma
+
+print("Optimal Beta:", optimal_beta)
+print("Optimal Sigma:", optimal_sigma)
+print("Optimal Gamma:", optimal_gamma)
+print("Optimal SSE:", optimal_sse)
+
+#Run model using new optimal parameters
+I_best = run_euler(optimal_beta, optimal_sigma, optimal_gamma, total_days)
+
+#Plot the model vs given data
+plt.figure()
+plt.scatter(day, active, label ="Day 2 Data")
+plt.plot9day(day, I_best[:len(day)], label ="SEIR Model")
+plt.xlabel("Day")
+plt.ylabel("Active Cases")
+plt.title("SEIR Model Fit to Data")
+plt.legend()
+plt.show()
