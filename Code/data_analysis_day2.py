@@ -1,12 +1,12 @@
-#Chat GPT was used to assist the grid search for optimzing the beta, gamma, and sigma parameters to minimize sse
-
+# ChatGPT was used to assist in implementing the grid search used to optimize the beta, gamma, and sigma parameters by minimizing SSE
+# It was also used to help visualize the future infection trend and mark the predicted peak infection day on the plot
 #%%
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Load data from csv file
-df = pd.read_csv(r"C:\Users\isabe\OneDrive\Documents\BME2315\Module-2-Epidemics-SIR-Modeling\Data\mystery_virus_daily_active_counts_RELEASE#2.csv", parse_dates=['date'], header=0, index_col=None)
+df = pd.read_csv(r"/Users/haydenrue/Desktop/Comp BME/Module 2/Module-2-Epidemics-SIR-Modeling/Data/mystery_virus_daily_active_counts_RELEASE#2.csv", parse_dates=['date'], header=0, index_col=None)
 day = df["day"].values
 active = df["active reported daily cases"].values
 
@@ -47,6 +47,7 @@ optimal_gamma = None
 
 total_days = len(day)
 
+#Find lowest sse by running eulers method for each parameter
 for beta in beta_values:
     for sigma in sigma_values:
         for gamma in gamma_values:
@@ -71,9 +72,28 @@ I_best = run_euler(optimal_beta, optimal_sigma, optimal_gamma, total_days)
 #Plot the model vs given data
 plt.figure()
 plt.scatter(day, active, label ="Day 2 Data")
-plt.plot9day(day, I_best[:len(day)], label ="SEIR Model")
+plt.plot(day, I_best[:len(day)], label ="SEIR Model")
 plt.xlabel("Day")
 plt.ylabel("Active Cases")
 plt.title("SEIR Model Fit to Data")
+plt.legend()
+plt.show()
+
+#Predict future trends
+future_days = 200
+
+#Run eulers method on future days and find peak infections and peak day
+I_future = run_euler(optimal_beta, optimal_sigma, optimal_gamma, future_days)
+peak_infections = np.max(I_future)
+peak_day = np.argmax(I_future)
+print("Peak infections:", peak_infections)
+print("Peak occurs on day:", peak_day)
+
+plt.figure()
+plt.scatter(day, active, label="Observed Data")
+plt.plot(range(len(I_future)), I_future, label="SEIR Prediction")
+plt.axvline(peak_day, linestyle="--", label="Peak Day")
+plt.xlabel("Day")
+plt.ylabel("Active Infections")
 plt.legend()
 plt.show()
