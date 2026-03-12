@@ -1,3 +1,5 @@
+##ChatGPT was used to assist in structuring the code to analyze the interventions of a vaccine campaign and testing + quarantine, as well as to help write the code to run the SEIR model with and without interventions and to visualize the results.
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
