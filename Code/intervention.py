@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 # Load data from csv file
-df = pd.read_csv(r"C:\Users\isabe\OneDrive\Documents\BME2315\Module-2-Epidemics-SIR-Modeling\Data\mystery_virus_daily_active_counts_RELEASE#3.csv")
+df = pd.read_csv(r"/Users/haydenrue/Desktop/Comp BME/Module 2/Module-2-Epidemics-SIR-Modeling/Data/mystery_virus_daily_active_counts_RELEASE#3.csv")
 day = df["day"].values
 active = df["active reported daily cases"].values
 
@@ -196,16 +196,6 @@ print("Optimal SSE:", optimal_sse)
 # Run model using optimal parameters
 S_best, E_best, I_best, R_best = run_euler(optimal_beta, optimal_sigma, optimal_gamma, total_days)
 
-# Plot model fit
-plt.figure()
-plt.scatter(day, active, label="Observed Data")
-plt.plot(day, I_best[:len(day)], label="SEIR Model Fit")
-plt.xlabel("Day")
-plt.ylabel("Active Cases")
-plt.title("SEIR Model Fit to Data")
-plt.legend()
-plt.show()
-
 # Predict future trends
 future_days = 200
 
@@ -240,14 +230,19 @@ plt.legend()
 plt.show()
 
 #%%
-def run_euler(beta, sigma, gamma, total_days, intervention_day=None):
+def run_euler(beta, sigma, gamma, total_days, intervention_day=None, mask_day=None):
     S, E, I, R = [S0], [E0], [I0], [R0]
     h = 1
 
     for t in range(total_days):
         current_gamma = gamma
+        current_beta = beta
+        
+        #Starting mask mandate on day 70
+        if mask_day is not None and t >= mask_day:
+            current_beta = beta * .6
 
-        # Testing + quarantine starts on day 70
+        # Testing + quarantine and masking mandate starts on day 70
         if intervention_day is not None and t >= intervention_day:
             infectious_period = 1 / gamma
             new_infectious_period = infectious_period - 2
@@ -257,8 +252,8 @@ def run_euler(beta, sigma, gamma, total_days, intervention_day=None):
 
             current_gamma = 1 / new_infectious_period
 
-        dS = -(beta * S[t] * I[t]) / N
-        dE = (beta * S[t] * I[t]) / N - (sigma * E[t])
+        dS = -(current_beta * S[t] * I[t]) / N
+        dE = (current_beta * S[t] * I[t]) / N - (sigma * E[t])
         dI = (sigma * E[t]) - (current_gamma * I[t])
         dR = (current_gamma * I[t])
 
@@ -271,8 +266,10 @@ def run_euler(beta, sigma, gamma, total_days, intervention_day=None):
 
 future_days = 200
 
+
 I_future_no_intervention = run_euler(optimal_beta, optimal_sigma, optimal_gamma, future_days)
 I_future_with_quarantine = run_euler(optimal_beta, optimal_sigma, optimal_gamma, future_days, intervention_day=70)
+I_future_with_mask_mandate = run_euler(optimal_beta, optimal_sigma,optimal_gamma, future_days, mask_day=70)
 
 peak_infections = np.max(I_future_with_quarantine)
 peak_day = np.argmax(I_future_with_quarantine)
@@ -288,5 +285,16 @@ plt.axvline(70, linestyle="--", label="Intervention Day")
 plt.xlabel("Day")
 plt.ylabel("Active Infections")
 plt.title("Testing + Quarantine Starting Day 70")
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.scatter(day, active, label="Observed Data")
+plt.plot(range(len(I_future_no_intervention)), I_future_no_intervention, label="No Intervention")
+plt.plot(range(len(I_future_with_mask_mandate)), I_future_with_mask_mandate, label="Masking Mandate")
+plt.axvline(70, linestyle="--", label="Intervention Day")
+plt.xlabel("Day")
+plt.ylabel("Active Infections")
+plt.title("Masking Mandate Starting at Day 70")
 plt.legend()
 plt.show()
